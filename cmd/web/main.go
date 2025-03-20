@@ -1,23 +1,36 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
 )
 
-func helloWorld(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Hello, World!")
+type application struct {
+	infoLog  *log.Logger
+	errorLog *log.Logger
+}
+
+func newApplication() *application {
+	logHandler := slog.NewTextHandler(os.Stdout, nil)
+
+	return &application{
+		infoLog:  slog.NewLogLogger(logHandler, slog.LevelInfo),
+		errorLog: slog.NewLogLogger(logHandler, slog.LevelError),
+	}
 }
 
 func main() {
-	mux := http.NewServeMux()
+	app := newApplication()
 
-	mux.HandleFunc("/hello", helloWorld)
+	server := &http.Server{
+		Addr:    ":4000",
+		Handler: app.routes(),
+	}
 
-	log.Println("Listening...")
-
-	err := http.ListenAndServe(":4000", mux)
+	app.infoLog.Println("Listening...")
+	err := server.ListenAndServe()
 	if err != nil {
 		log.Fatalln("ListenAndServe:", err)
 	}
