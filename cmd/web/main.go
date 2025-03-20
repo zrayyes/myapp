@@ -33,6 +33,10 @@ func main() {
 		Handler: app.routes(),
 	}
 
+	// TODO: Remove later
+	app.taskStore.Create("Task 1", "This is the first task")
+	app.taskStore.Create("Task 2", "This is the second task")
+
 	app.infoLog.Println("Listening...")
 	err := server.ListenAndServe()
 	if err != nil {
