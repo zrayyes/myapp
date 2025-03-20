@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -12,6 +11,5 @@ func (app *application) getTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Implement a JSON response
-	fmt.Fprintf(w, "%+v", tasks)
+	app.jsonResponse(w, http.StatusOK, tasks)
 }

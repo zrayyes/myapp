@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -23,4 +24,16 @@ func (app *application) clientError(w http.ResponseWriter, status int) {
 // A convenience wrapper around clientError to return 404
 func (app *application) notFound(w http.ResponseWriter) {
 	app.clientError(w, http.StatusNotFound)
+}
+
+func (app *application) jsonResponse(w http.ResponseWriter, status int, data interface{}) {
+	body, err := json.Marshal(data)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	fmt.Fprintf(w, "%s", body)
 }

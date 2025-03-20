@@ -3,10 +3,10 @@ package models
 import "time"
 
 type Task struct {
-	Title   string
-	Content string
-	Created time.Time
-	Updated time.Time
+	Title   string    `json:"title"`
+	Content string    `json:"content"`
+	Created time.Time `json:"created"`
+	Updated time.Time `json:"updated"`
 }
 
 type TaskStore interface {
