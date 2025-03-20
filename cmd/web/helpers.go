@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 )
 
 // Writes an error message and stack trace to the errorLog
@@ -36,4 +37,18 @@ func (app *application) jsonResponse(w http.ResponseWriter, status int, data int
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	fmt.Fprintf(w, "%s", body)
+}
+
+func getIntFromPath(r *http.Request, key string) (int, error) {
+	value := r.PathValue(key)
+	if value == "" {
+		return 0, fmt.Errorf("missing value for key %s", key)
+	}
+
+	intValue, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, fmt.Errorf("invalid value for key %s", key)
+	}
+
+	return intValue, nil
 }

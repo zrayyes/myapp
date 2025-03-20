@@ -3,6 +3,7 @@ package models
 import "time"
 
 type Task struct {
+	Id      int       `json:"id"`
 	Title   string    `json:"title"`
 	Content string    `json:"content"`
 	Created time.Time `json:"created"`
@@ -18,37 +19,52 @@ type TaskStore interface {
 }
 
 type TaskStoreInMemory struct {
-	tasks []Task
+	tasks map[int]Task
 }
 
 func NewTaskStoreInMemory() *TaskStoreInMemory {
 	return &TaskStoreInMemory{
-		tasks: []Task{},
+		tasks: map[int]Task{},
 	}
 }
 
 func (s *TaskStoreInMemory) GetAll() ([]Task, error) {
-	return s.tasks, nil
+	tasks := make([]Task, 0, len(s.tasks))
+
+	for _, t := range s.tasks {
+		tasks = append(tasks, t)
+	}
+
+	return tasks, nil
 }
 
 func (s *TaskStoreInMemory) Get(id int) (Task, error) {
-	return s.tasks[id], nil
+	t, ok := s.tasks[id]
+	if !ok {
+		return Task{}, ErrRecordNotFound
+	}
+
+	return t, nil
 }
 
 func (s *TaskStoreInMemory) Create(title, content string) (int, error) {
 	t := Task{
+		Id:      len(s.tasks) + 1,
 		Title:   title,
 		Content: content,
 		Created: time.Now(),
 		Updated: time.Now(),
 	}
 
-	s.tasks = append(s.tasks, t)
-	return len(s.tasks) - 1, nil
+	s.tasks[t.Id] = t
+	return t.Id, nil
 }
 
 func (s *TaskStoreInMemory) Update(id int, title, content string) error {
-	t := s.tasks[id]
+	t, ok := s.tasks[id]
+	if !ok {
+		return ErrRecordNotFound
+	}
 
 	if title != "" {
 		t.Title = title
@@ -65,6 +81,10 @@ func (s *TaskStoreInMemory) Update(id int, title, content string) error {
 }
 
 func (s *TaskStoreInMemory) Delete(id int) error {
-	s.tasks = append(s.tasks[:id], s.tasks[id+1:]...)
+	if _, ok := s.tasks[id]; !ok {
+		return ErrRecordNotFound
+	}
+
+	delete(s.tasks, id)
 	return nil
 }
