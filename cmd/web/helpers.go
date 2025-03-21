@@ -39,6 +39,17 @@ func (app *application) jsonResponse(w http.ResponseWriter, status int, data int
 	fmt.Fprintf(w, "%s", body)
 }
 
+func readJSON(r *http.Request, dst interface{}) error {
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(dst); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func getIntFromPath(r *http.Request, key string) (int, error) {
 	value := r.PathValue(key)
 	if value == "" {

@@ -36,3 +36,30 @@ func (app *application) getTask(w http.ResponseWriter, r *http.Request) {
 
 	app.jsonResponse(w, http.StatusOK, task)
 }
+
+func (app *application) createTask(w http.ResponseWriter, r *http.Request) {
+	var task models.Task
+	if err := readJSON(r, &task); err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// TODO: Add real validation
+	if task.Title == "" {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if task.Content == "" {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	t, err := app.taskStore.Create(task.Title, task.Content)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	app.jsonResponse(w, http.StatusCreated, t)
+}

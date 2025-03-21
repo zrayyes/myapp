@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -113,6 +114,64 @@ func TestGetTask(t *testing.T) {
 			response, err := http.Get(ts.URL + "/tasks/" + tt.taskID)
 			if err != nil {
 				t.Fatalf("could not send GET request: %v", err)
+			}
+
+			if response.StatusCode != tt.expectedStatus {
+				t.Fatalf("got status %d, want %d", response.StatusCode, tt.expectedStatus)
+			}
+
+			if tt.expectedTask != nil {
+				var gotTask models.Task
+				UnmarshalResponse(t, response, &gotTask)
+
+				if gotTask.Id != tt.expectedTask.Id || gotTask.Title != tt.expectedTask.Title || gotTask.Content != tt.expectedTask.Content {
+					t.Errorf("got %+v, want %+v", gotTask, tt.expectedTask)
+				}
+			}
+		})
+	}
+}
+
+func TestCreateTask(t *testing.T) {
+	app := setupTestApp()
+
+	ts := httptest.NewServer(app.routes())
+	defer ts.Close()
+
+	tests := []struct {
+		name           string
+		task           models.Task
+		expectedTask   *models.Task
+		expectedStatus int
+	}{
+		{
+			name: "POST new task",
+			task: models.Task{Title: "Salt", Content: "This is Salt's task"},
+			expectedTask: &models.Task{
+				Id:      1,
+				Title:   "Salt",
+				Content: "This is Salt's task",
+			},
+			expectedStatus: http.StatusCreated,
+		},
+		{
+			name:           "POST empty task",
+			task:           models.Task{},
+			expectedTask:   nil,
+			expectedStatus: http.StatusBadRequest,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, err := json.Marshal(tt.task)
+			if err != nil {
+				t.Fatalf("could not marshal task: %v", err)
+			}
+
+			response, err := http.Post(ts.URL+"/tasks", "application/json", bytes.NewReader(body))
+			if err != nil {
+				t.Fatalf("could not send POST request: %v", err)
 			}
 
 			if response.StatusCode != tt.expectedStatus {

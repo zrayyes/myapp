@@ -13,7 +13,7 @@ type Task struct {
 type TaskStore interface {
 	GetAll() ([]Task, error)
 	Get(id int) (Task, error)
-	Create(title, content string) (int, error)
+	Create(title, content string) (Task, error)
 	Update(id int, title, content string) error
 	Delete(id int) error
 }
@@ -47,7 +47,7 @@ func (s *TaskStoreInMemory) Get(id int) (Task, error) {
 	return t, nil
 }
 
-func (s *TaskStoreInMemory) Create(title, content string) (int, error) {
+func (s *TaskStoreInMemory) Create(title, content string) (Task, error) {
 	t := Task{
 		Id:      len(s.tasks) + 1,
 		Title:   title,
@@ -57,7 +57,7 @@ func (s *TaskStoreInMemory) Create(title, content string) (int, error) {
 	}
 
 	s.tasks[t.Id] = t
-	return t.Id, nil
+	return t, nil
 }
 
 func (s *TaskStoreInMemory) Update(id int, title, content string) error {
