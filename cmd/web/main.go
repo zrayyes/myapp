@@ -15,18 +15,18 @@ type application struct {
 	taskStore models.TaskStore
 }
 
-func newApplication() *application {
+func newApplication(taskStore models.TaskStore) *application {
 	logHandler := slog.NewTextHandler(os.Stdout, nil)
 
 	return &application{
 		infoLog:   slog.NewLogLogger(logHandler, slog.LevelInfo),
 		errorLog:  slog.NewLogLogger(logHandler, slog.LevelError),
-		taskStore: models.NewTaskStoreInMemory(),
+		taskStore: taskStore,
 	}
 }
 
 func main() {
-	app := newApplication()
+	app := newApplication(models.NewTaskStoreInMemory())
 
 	server := &http.Server{
 		Addr:    ":4000",
